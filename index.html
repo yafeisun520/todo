@@ -46,6 +46,11 @@
     cursor: pointer; padding: 2px 0;
   }
   .todo-item .text.done { text-decoration: line-through; color: #aaa; }
+  .todo-item .edit-input {
+    flex: 1; font-size: 15px; color: #2d2d44; font-family: inherit;
+    border: 1px solid #6c5ce7; border-radius: 6px; padding: 2px 6px;
+    outline: none; width: 100%; box-sizing: border-box;
+  }
   .todo-item .dates { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
   .todo-item .entry-date, .todo-item .done-date {
     font-size: 11px; white-space: nowrap; flex-shrink: 0;
@@ -343,6 +348,26 @@
     return parts;
   }
 
+  function startEdit(span, t) {
+    if (span.querySelector('input')) return;
+    const input = document.createElement('input');
+    input.type = 'text'; input.value = t.text; input.className = 'edit-input';
+    const finish = () => {
+      const v = input.value.trim();
+      if (v) { t.text = v; save(); }
+      render();
+    };
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') finish();
+      else if (e.key === 'Escape') render();
+    });
+    input.addEventListener('blur', finish);
+    span.textContent = '';
+    span.appendChild(input);
+    input.focus();
+    input.select();
+  }
+
   function render() {
     listEl.innerHTML = '';
     if (todos.length === 0) {
@@ -388,12 +413,7 @@
         const span = document.createElement('span');
         span.className = 'text' + (t.done ? ' done' : '');
         span.textContent = t.text;
-        span.addEventListener('click', () => {
-          const wasDone = t.done; t.done = !t.done;
-          if (t.done && !wasDone) { t.doneDate = today(); showToast(compliments[Math.floor(Math.random() * compliments.length)]); }
-          else if (!t.done && wasDone) { t.doneDate = null; }
-          save(); render();
-        });
+        span.addEventListener('click', () => startEdit(span, t));
         const datesDiv = document.createElement('div');
         datesDiv.className = 'dates';
         const entrySpan = document.createElement('span');
