@@ -355,12 +355,16 @@
     countEl.textContent = `${done}/${todos.length}`;
     statsEl.textContent = done === todos.length && todos.length > 0 ? '全部完成 🎉' : `已完成 ${done} / 共 ${todos.length}`;
 
-    const groups = {};
-    todos.forEach(t => { if (!groups[t.date]) groups[t.date] = []; groups[t.date].push(t); });
-    const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+    const groupDates = list => {
+      const g = {};
+      list.forEach(t => { if (!g[t.date]) g[t.date] = []; g[t.date].push(t); });
+      return Object.keys(g).sort((a, b) => b.localeCompare(a));
+    };
+    const pending = todos.filter(t => !t.done);
+    const finished = todos.filter(t => t.done);
 
-    sortedDates.forEach(dateStr => {
-      const items = groups[dateStr].sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0));
+    [pending, finished].forEach(list => groupDates(list).forEach(dateStr => {
+      const items = list.filter(t => t.date === dateStr);
       const groupDiv = document.createElement('div');
       groupDiv.className = 'date-group';
       const header = document.createElement('div');
@@ -419,7 +423,7 @@
         groupDiv.appendChild(div);
       });
       listEl.appendChild(groupDiv);
-    });
+    }));
   }
 
   function addTodo() {
